@@ -6,16 +6,18 @@ const app = express();
 // list of servers 
 
 const servers = [
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3003'
+    'http://192.168.80.16:3001',
+    'http://192.168.80.16:3002',
+    'http://192.168.80.16:3003'
 ];
 
 let cur = 0;
+const ipServerMap = {};
 
 const handler = (req, res) => {
     const _req = request({url: servers[cur] + req.url});
     console.log('redirecting to server', servers[cur]);
+    console.log('Client ip: ', req.ip)
 
     _req.on('error', function(err) {
         console.log(`Error: Server connection refused ${servers[cur]} is not available.`);
