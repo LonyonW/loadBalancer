@@ -5,6 +5,7 @@
 
 */
 
+require('dotenv').config();
 const express = require('express');
 const request = require('request');
 const cors = require('cors');
@@ -13,10 +14,16 @@ const app = express();
 
 app.use(cors());
 
+const SERVER_IP_1 = process.env.SERVER_IP_1;
+const SERVER_IP_2 = process.env.SERVER_IP_2;
+const SERVER_IP_3 = process.env.SERVER_IP_3;
+
+console.log('SERVER_IP_1:', SERVER_IP_1);
+
 const servers = [
-    'http://192.168.80.16:3001',
-    'http://192.168.80.16:3002',
-    'http://192.168.80.16:3003'
+    SERVER_IP_1,
+    SERVER_IP_2,
+    SERVER_IP_3
 ];
 
 let cur = 0;
