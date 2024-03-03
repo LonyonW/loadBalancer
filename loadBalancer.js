@@ -1,9 +1,17 @@
+/*
+    'http://192.168.80.16:3001',
+    'http://192.168.80.16:3002',
+    'http://192.168.80.16:3003'
+
+*/
+
 const express = require('express');
 const request = require('request');
+const cors = require('cors');
 
 const app = express();
 
-// list of servers 
+app.use(cors());
 
 const servers = [
     'http://192.168.80.16:3001',
@@ -15,19 +23,28 @@ let cur = 0;
 const ipServerMap = {};
 
 const handler = (req, res) => {
-    const _req = request({url: servers[cur] + req.url});
-    console.log('redirecting to server', servers[cur]);
-    console.log('Client ip: ', req.ip)
+    const clientIp = req.ip;
+    let serverUrl;
+
+    if (ipServerMap[clientIp]) {
+        serverUrl = ipServerMap[clientIp];
+    } else {
+        serverUrl = servers[cur];
+        ipServerMap[clientIp] = serverUrl;
+        cur = (cur + 1) % servers.length;
+    }
+
+    const _req = request({url: serverUrl + req.url});
+    console.log('redirecting to server', serverUrl);
+    console.log('client IP:', clientIp);
 
     _req.on('error', function(err) {
-        console.log(`Error: Server connection refused ${servers[cur]} is not available.`);
-        //console.log('error:', err);
-        cur = (cur + 1) % servers.length;
+        console.log(`Error: El servidor en la dirección ${serverUrl} no está disponible.`);
+        delete ipServerMap[clientIp];
         handler(req, res);
     });
 
     req.pipe(_req).pipe(res);
-    cur = (cur + 1) % servers.length;
 }
 
 const server = app.get('*', handler).post('*', handler);
