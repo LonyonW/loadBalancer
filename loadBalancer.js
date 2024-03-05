@@ -44,6 +44,7 @@ const servers = [
 
 let cur = 0;
 const ipServerMap = {};
+let errorCount = 0;
 
 const handler = (req, res) => {
     const clientIp = req.ip;
@@ -59,19 +60,30 @@ const handler = (req, res) => {
 
     const _req = request({url: serverUrl + req.url});
     console.log('redirecting to server', serverUrl);
-    //console.log('client IP:', clientIp);
 
     _req.on('error', function(err) {
         console.log(`Error: Server refused connection ${serverUrl} is not available.`);
         console.log('Error time:', new Date().toISOString());
         console.log('Error payload:', err);
         delete ipServerMap[clientIp];
-        handler(req, res);
+        errorCount++;
+        if (errorCount < servers.length) {
+            handler(req, res);
+        } else {
+            console.log('Error count exceeded. Sending 500.');
+            res.status(500).send('No se pudo conectar a ninguno de los servidores');
+            errorCount = 0; // reset the error count
+        }
     });
 
+    _req.on('response', function() {
+        errorCount = 0; // reset the error count on successful connection
+    }); 
+
     req.pipe(_req).pipe(res);
-    //next();
 }
+
+
 
 const server = app.get('*', handler).post('*', handler);
 
