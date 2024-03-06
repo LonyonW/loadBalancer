@@ -1,10 +1,3 @@
-/*
-    'http://192.168.80.16:3001',
-    'http://192.168.80.16:3002',
-    'http://192.168.80.16:3003'
-
-*/
-
 require('dotenv').config();
 const express = require('express');
 const request = require('request');
@@ -59,7 +52,7 @@ const handler = (req, res) => {
     }
 
     const _req = request({url: serverUrl + req.url});
-    console.log('redirecting to server', serverUrl);
+    console.log('Request sent to server:', serverUrl);
 
     _req.on('error', function(err) {
         console.log(`Error: Server refused connection ${serverUrl} is not available.`);
