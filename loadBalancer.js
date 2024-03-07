@@ -11,7 +11,7 @@ app.use((req, res, next) => {
     const now = new Date();
     const formattedDate = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}:${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
     const clientIp = req.ip.split(':').pop();
-    console.log(`[${clientIp}] [${formattedDate}]`);
+    console.log(`new request from: [${clientIp}] [${formattedDate}]`);
     next();
 });
 
@@ -31,9 +31,9 @@ let errorCount = 0;
 const checkServer = (req, res, callback) => {
     let serverUrl = servers[cur];
     const _req = request({url: serverUrl, method: 'HEAD'}, function(err) {
+        cur = (cur + 1) % servers.length; // Increment cur in each request
         if (err) {
             console.log(`Error: Server refused connection ${serverUrl} is not available.`);
-            cur = (cur + 1) % servers.length;
             errorCount++;
             if (errorCount < servers.length) {
                 checkServer(req, res, callback);
@@ -43,9 +43,18 @@ const checkServer = (req, res, callback) => {
             }
         } else {
             callback(serverUrl);
-            cur = (cur + 1) % servers.length; // Move this line here
         }
     });
+
+    /*
+
+    setTimeout(() => {
+        if (!_req.finished) {
+            _req.abort();
+            console.log('Timeout: No response from server');
+        }
+    }, 5000); // Timeout after 5 seconds
+    */
 }
 
 const handler = (req, res) => {
@@ -53,7 +62,7 @@ const handler = (req, res) => {
         const _req = request({url: serverUrl + req.url});
         console.log('redirecting to', serverUrl);
         req.pipe(_req).pipe(res);
-        // cur = (cur + 1) % servers.length; // Remove this line
+        //cur = (cur + 1) % servers.length;
     });
 }
 
@@ -62,3 +71,5 @@ const handler = (req, res) => {
 const server = app.get('*', handler).post('*', handler);
 
 server.listen(8888);
+
+//res.status(500).send('La solicitud se ha agotado, no se pudo conectar a ninguno de los servidores');
