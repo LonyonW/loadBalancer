@@ -10,7 +10,7 @@ app.use(cors());
 app.use((req, res, next) => {
     const now = new Date();
     const formattedDate = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}:${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
-    const clientIp = req.ip.split(':').pop();
+    const clientIp = req.ip.split(':').pop(); 
     console.log(`new request from: [${clientIp}] [${formattedDate}]`);
     next();
 });
@@ -28,6 +28,7 @@ const servers = [
 let cur = 0;
 let errorCount = 0;
 
+
 const checkServer = (req, res, callback) => {
     let serverUrl = servers[cur];
     const _req = request({url: serverUrl, method: 'HEAD'}, function(err) {
@@ -39,14 +40,24 @@ const checkServer = (req, res, callback) => {
                 checkServer(req, res, callback);
             } else {
                 res.status(500).send('No se pudo conectar a ninguno de los servidores');
+                console.log('No server available');
                 errorCount = 0;
             }
         } else {
             callback(serverUrl);
+            
+            errorCount = 0; //edit:
         }
     });
 
-    /*
+    
+}
+
+
+
+
+
+/*
 
     setTimeout(() => {
         if (!_req.finished) {
@@ -55,7 +66,6 @@ const checkServer = (req, res, callback) => {
         }
     }, 5000); // Timeout after 5 seconds
     */
-}
 
 const handler = (req, res) => {
     checkServer(req, res, function(serverUrl) {
